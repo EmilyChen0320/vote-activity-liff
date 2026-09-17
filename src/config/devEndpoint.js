@@ -11,7 +11,7 @@
  */
 const IS_ENABLED =
   (typeof import.meta.env !== 'undefined' && import.meta.env.DEV === true) ||
-  (typeof import.meta.env !== 'undefined' && import.meta.env.VITE_PREVIEW === 'true')
+  (typeof import.meta.env !== 'undefined' && import.meta.env.MODE === 'preview')
 
 export const applyDevEndpoint = () => {
   if (!IS_ENABLED) {
