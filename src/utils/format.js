@@ -51,3 +51,29 @@ export const formatDateRange = (startAt, endAt) => {
   const endText = `${pad(end.getMonth() + 1)}-${pad(end.getDate())}`
   return `${startText} ~ ${endText}`
 }
+
+/**
+ * 依投票頻率組出投票前的提示
+ *
+ * 送出投票是不可逆的決定，有次數限制時要讓粉絲事先知道。
+ * 不限次數不提示：沒有限制就沒有要提醒的事，寫「可重複投票」反而像在鼓勵灌票。
+ * @param {string} frequency - unlimited / daily_once / once_per_activity / custom
+ * @param {number|string|null} limit - custom 時的次數上限
+ * @returns {string} 提示文字，不需提示時為空字串
+ */
+export const formatVoteFrequencyNotice = (frequency, limit) => {
+  if (frequency === 'once_per_activity') {
+    return '每人限投 1 次，送出後無法更改'
+  }
+
+  if (frequency === 'daily_once') {
+    return '每人每日可投 1 次'
+  }
+
+  if (frequency === 'custom') {
+    const times = Number(limit)
+    return Number.isSafeInteger(times) && times >= 1 ? `活動期間每人限投 ${times} 次` : ''
+  }
+
+  return ''
+}

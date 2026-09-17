@@ -79,6 +79,27 @@ const scenarios = {
       next_votable_at: '2026-10-02T16:00:00.000000Z',
     }),
   },
+  'limit-once': {
+    activity: { ...activity, vote_frequency: 'once_per_activity' },
+    items,
+    phase: 'ongoing',
+    viewer: viewer({ can_vote: true }),
+    result,
+  },
+  'limit-daily': {
+    activity: { ...activity, vote_frequency: 'daily_once' },
+    items,
+    phase: 'ongoing',
+    viewer: viewer({ can_vote: true }),
+    result,
+  },
+  'limit-custom': {
+    activity: { ...activity, vote_frequency: 'custom', frequency_limit: 3 },
+    items,
+    phase: 'ongoing',
+    viewer: viewer({ can_vote: true }),
+    result,
+  },
   voted: {
     activity,
     items,

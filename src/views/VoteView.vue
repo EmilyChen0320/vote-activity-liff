@@ -1,12 +1,15 @@
 <script setup>
-import { ref } from 'vue'
+import { computed, ref } from 'vue'
 
 import CoverImage from '../components/CoverImage.vue'
 import VoteOption from '../components/VoteOption.vue'
 import { useVoteActivityStore } from '../stores/voteActivity'
-import { countCharacters } from '../utils/format'
+import { countCharacters, formatVoteFrequencyNotice } from '../utils/format'
 
 const store = useVoteActivityStore()
+const frequencyNotice = computed(() =>
+  formatVoteFrequencyNotice(store.activity?.vote_frequency, store.activity?.frequency_limit),
+)
 const submitError = ref('')
 const submitRetryable = ref(false)
 
@@ -81,9 +84,14 @@ const handleSubmit = async () => {
         {{ submitError }}
       </p>
 
+      <p v-if="frequencyNotice" class="mt-6 text-center text-xs text-muted">
+        {{ frequencyNotice }}
+      </p>
+
       <button
         type="button"
-        class="mt-6 w-full rounded-xl bg-primary py-3.5 font-bold text-white disabled:opacity-50"
+        class="w-full rounded-xl bg-primary py-3.5 font-bold text-white disabled:opacity-50"
+        :class="frequencyNotice ? 'mt-2' : 'mt-6'"
         :disabled="store.submitting"
         @click="handleSubmit"
       >

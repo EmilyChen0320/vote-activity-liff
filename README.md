@@ -51,6 +51,9 @@ window.endpoint = {
 | `?mock=ended` | 活動已結束、未投票 |
 | `?mock=ended-voted` | 活動已結束、已投票（顯示結果） |
 | `?mock=limit` | 已達投票次數上限 |
+| `?mock=limit-once` | 進行中、活動期間僅一次 |
+| `?mock=limit-daily` | 進行中、每日一次 |
+| `?mock=limit-custom` | 進行中、自訂 3 次 |
 | `?mock=voted` | 已投過、回訪 |
 | `?mock=login` | 需要 LINE 登入 |
 
