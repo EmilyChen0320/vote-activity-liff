@@ -2,6 +2,28 @@ import { getEndpoint } from '../config/endpoint.js'
 
 let initialized = false
 
+/**
+ * 取得已登入者的存取權杖，但不主動觸發登入
+ *
+ * 從 LINE 登入轉回本頁時，SPA 會重新載入並依規定先不帶 token 查詢活動狀態，
+ * 後端因此仍回 login_required。此時必須靜默取回權杖重試一次，
+ * 否則畫面會停在「使用 LINE 登入」，使用者已經登入了卻看不出來。
+ * @returns {Promise<string>} 權杖；尚未登入或沒有 LIFF 設定時回空字串
+ */
+export const getLiffTokenSilently = async () => {
+  const { liffId, enableLiff } = getEndpoint()
+  if (!enableLiff || !liffId || !window.liff) {
+    return ''
+  }
+
+  if (!initialized) {
+    await window.liff.init({ liffId })
+    initialized = true
+  }
+
+  return window.liff.isLoggedIn() ? window.liff.getAccessToken() : ''
+}
+
 export const getLiffToken = async () => {
   const { liffId, enableLiff } = getEndpoint()
   if (!enableLiff || !liffId) throw new Error('此活動需要 LINE 登入，但缺少 LIFF 設定')

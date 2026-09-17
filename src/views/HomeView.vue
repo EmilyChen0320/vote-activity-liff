@@ -38,9 +38,10 @@ const isEnded = computed(
 )
 const showVoteButton = computed(() => !isEnded.value)
 
-// 已投過且回訪：顯示完成狀態與查看結果入口
+// 已投過且「不能再投」時才顯示完成狀態；
+// 不限次數的活動投完仍可再投，停在完成畫面會讓人以為不能投了
 const showVotedSummary = computed(
-  () => store.hasVoted && store.phase !== 'scheduled' && !statusCard.value,
+  () => store.hasVoted && !store.canVote && store.phase !== 'scheduled' && !statusCard.value,
 )
 </script>
 
@@ -101,6 +102,15 @@ const showVotedSummary = computed(
         <p v-if="store.needsLogin" class="mt-3 text-center text-xs text-muted">
           🔒 需要 LINE 登入才能投票
         </p>
+
+        <button
+          v-if="store.hasVoted && store.result"
+          type="button"
+          class="mt-3 w-full text-center text-sm font-bold text-primary underline"
+          @click="store.goToScreen('result')"
+        >
+          查看目前即時投票結果
+        </button>
       </template>
     </section>
 

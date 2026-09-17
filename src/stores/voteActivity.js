@@ -1,9 +1,9 @@
 import { defineStore } from 'pinia'
 
 import { getActivity, getResult, submitVote } from '../api/voteActivity.js'
-import { getDevMockScreen } from '../config/devMock.js'
+import { getDevMockScreen, getDevMockScenario } from '../config/devMock.js'
 import { getEndpoint } from '../config/endpoint.js'
-import { closeLiffWindow, getLiffToken } from '../services/liff.js'
+import { closeLiffWindow, getLiffToken, getLiffTokenSilently } from '../services/liff.js'
 import { countCharacters } from '../utils/format.js'
 
 const POLLING_INTERVAL = 5000
@@ -64,7 +64,16 @@ export const useVoteActivityStore = defineStore('voteActivity', {
       try {
         // 第一次一律不帶 token；需要登入時由使用者自己點「使用 LINE 登入」再走 login()，
         // 不在載入當下自動轉址，否則粉絲看不到活動說明就被帶去登入頁
-        const payload = await getActivity()
+        // 規定第一次不得帶 token；若後端回 login_required 而使用者其實已經登入過
+        // （例如剛從 LINE 登入轉回本頁），就靜默取回權杖重試一次
+        let payload = await getActivity()
+        if (payload.viewer?.reason === 'login_required' && !getDevMockScenario()) {
+          const token = await getLiffTokenSilently().catch(() => '')
+          if (token) {
+            this.token = token
+            payload = await getActivity(token)
+          }
+        }
         this.applyActivity(payload)
         if (this.viewer?.has_voted) {
           // 預覽模式直接用假資料帶入，正式情況從本機記錄還原
@@ -131,7 +140,20 @@ export const useVoteActivityStore = defineStore('voteActivity', {
       try {
         const payload = await submitVote({ itemIds: this.selectedIds, answerText: this.answerText, token: this.token })
         this.submitted = true
-        this.viewer = { ...this.viewer, can_vote: false, has_voted: true }
+        // 不能一律把 can_vote 設成 false：不限次數的活動投完仍可再投。
+        // 這裡照後端的頻率規則在本地推導，避免多打一次有寫入副作用的活動狀態 API。
+        const votedCount = Number(this.viewer?.voted_count ?? 0) + 1
+        const frequency = this.activity?.vote_frequency
+        const frequencyLimit = Number(this.activity?.frequency_limit) || 0
+        const canVoteAgain =
+          frequency === 'unlimited' ||
+          (frequency === 'custom' && frequencyLimit > 0 && votedCount < frequencyLimit)
+        this.viewer = {
+          ...this.viewer,
+          can_vote: canVoteAgain,
+          has_voted: true,
+          voted_count: votedCount,
+        }
         this.result = payload?.result ?? null
         // 後端的 viewer 不會回傳「這個人投給誰」，只能記下本次送出的選擇
         this.rememberVotedItems(
