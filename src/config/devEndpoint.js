@@ -28,15 +28,19 @@ export const applyDevEndpoint = () => {
   }
 
   const injected = window.endpoint ?? {}
-  // 後端外殼若已注入字串值就不覆蓋，只補齊空白欄位。
-  // 布林欄位一律採用環境變數：index.html 的預設值是 false，
-  // 若沿用「有值就不覆蓋」的判斷，false 會被當成已提供而蓋掉設定。
-  window.endpoint = Object.fromEntries(
-    Object.entries(devEndpoint).map(([key, value]) => {
-      if (typeof value === 'boolean') {
-        return [key, value]
-      }
-      return [key, String(injected[key] ?? '').trim() ? injected[key] : value]
-    }),
-  )
+
+  // 判斷外面是否已經有人注入過完整設定：後端 Blade 外殼、或 build:preview 的
+  // inject-preview-endpoint.js 都會把值直接寫進 HTML。
+  // 只要兩個必填鍵都有值就視為已注入，整包不要再動 —— 逐鍵合併會踩到布林欄位的坑：
+  // enableLiff 為 true 時若用環境變數覆蓋，環境變數缺少就會被改成 false，
+  // 導致明明設定好了卻出現「缺少 LIFF 設定」。
+  const hasInjectedConfig =
+    String(injected.lineCrmApiBaseUrl ?? '').trim() !== '' &&
+    String(injected.voteActivityId ?? '').trim() !== ''
+
+  if (hasInjectedConfig) {
+    return
+  }
+
+  window.endpoint = devEndpoint
 }

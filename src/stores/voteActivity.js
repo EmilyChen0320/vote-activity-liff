@@ -16,6 +16,7 @@ export const useVoteActivityStore = defineStore('voteActivity', {
     // 活動連結只有 /vote/{id} 一條路由，畫面切換用狀態控制而不是換網址
     screen: 'home',
     votedItemTitles: [],
+    loginError: '',
   }),
   getters: {
     votableItems: (state) => state.items.filter((item) => item.type !== 'open_text'),
@@ -88,6 +89,7 @@ export const useVoteActivityStore = defineStore('voteActivity', {
     },
     /** 使用者主動點「使用 LINE 登入」時才走登入流程 */
     async login() {
+      this.loginError = ''
       try {
         const token = await getLiffToken()
         if (!token) return
@@ -95,7 +97,9 @@ export const useVoteActivityStore = defineStore('voteActivity', {
         this.applyActivity(await getActivity(token))
         this.startPolling()
       } catch (error) {
-        this.error = error
+        // 登入失敗只在按鈕旁提示，不要把整頁換成「活動載入失敗」，
+        // 否則使用者連活動內容都看不到，也不知道能不能重試
+        this.loginError = error.message || '登入失敗，請稍後再試'
       }
     },
     toggleSelection(id) {

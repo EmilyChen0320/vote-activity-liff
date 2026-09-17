@@ -105,6 +105,9 @@ const showVotedSummary = computed(
     </section>
 
     <div v-if="store.needsLogin" class="fixed inset-x-0 bottom-0 mx-auto max-w-[393px] p-4">
+      <p v-if="store.loginError" class="mb-2 text-center text-xs text-red-500">
+        {{ store.loginError }}
+      </p>
       <button
         type="button"
         class="flex w-full items-center justify-center gap-2 rounded-xl bg-[#06c755] py-3.5 font-bold text-white"
