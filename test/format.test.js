@@ -23,7 +23,7 @@ test('字數以字元計算，與後端 mb_strlen 對齊', () => {
 
 test('投票頻率提示只在有限制時出現', () => {
   const { formatVoteFrequencyNotice: f } = fmt
-  assert.equal(f('once_per_activity'), '每人限投 1 次，送出後無法更改')
+  assert.equal(f('once_per_activity'), '每人限投 1 次')
   assert.equal(f('daily_once'), '每人每日可投 1 次')
   assert.equal(f('custom', 3), '活動期間每人限投 3 次')
   // 不限次數不提示，避免看起來像在鼓勵重複投票

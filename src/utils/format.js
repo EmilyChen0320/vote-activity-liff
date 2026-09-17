@@ -63,7 +63,7 @@ export const formatDateRange = (startAt, endAt) => {
  */
 export const formatVoteFrequencyNotice = (frequency, limit) => {
   if (frequency === 'once_per_activity') {
-    return '每人限投 1 次，送出後無法更改'
+    return '每人限投 1 次'
   }
 
   if (frequency === 'daily_once') {
