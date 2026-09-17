@@ -1,9 +1,11 @@
 import { defineConfig } from 'vite'
 import vue from '@vitejs/plugin-vue'
 
-export default defineConfig({
+// preview 模式是給 Vercel 之類的暫時預覽用，資源放在根目錄；
+// 正式產物仍然要放進後端的 public/assets/vote_activities/
+export default defineConfig(({ mode }) => ({
   plugins: [vue()],
-  base: '/assets/vote_activities/',
+  base: mode === 'preview' ? '/' : '/assets/vote_activities/',
   build: {
     manifest: true,
     rollupOptions: {
@@ -18,4 +20,4 @@ export default defineConfig({
       },
     },
   },
-})
+}))

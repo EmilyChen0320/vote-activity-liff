@@ -60,6 +60,21 @@ window.endpoint = {
 預覽模式只在 `npm run dev` 生效，假資料以動態 import 載入，
 正式打包後整段連同資料都會被移除，不會進入交給後端的產物。
 
+## Vercel 暫時預覽
+
+正式部署是把 `npm run build` 的產物交給後端放進 `public/assets/vote_activities/`，
+本節只用於前端自行驗證畫面。
+
+```bash
+npm run build:preview   # base 改為根目錄，並從 .env.preview 注入 window.endpoint
+```
+
+`vercel.json` 已設定好建置指令與 SPA rewrite，連上 repo 即可部署。
+要測 LINE 登入時，必須把 Vercel 網址登記成該 LIFF App 的 Endpoint URL，否則 `liff.init` 會失敗。
+
+`.env.preview` 內的值都是執行期就會出現在瀏覽器的公開資訊，不是密鑰；
+正式打包不會讀取這個檔案，已確認產物不含其中任何設定值。
+
 ## 預定實作順序
 
 1. API client 與錯誤模型。
