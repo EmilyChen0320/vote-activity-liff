@@ -176,10 +176,25 @@ export const useVoteActivityStore = defineStore('voteActivity', {
       try {
         const payload = await getResult(this.token)
         this.phase = payload.phase
+
         // 3.13 不揭露時 result 為 null；此時要一併清掉，
         // 否則活動中途結束後，未投票者會繼續看到過期票數
-        this.result = payload.disclosed ? payload.result : null
-        if (!payload.disclosed) this.stopPolling()
+        if (!payload.disclosed) {
+          this.result = null
+          this.stopPolling()
+          return
+        }
+
+        // 後端的結果端點有短期快取，且寫入投票時不會清除（見串接文件 3.13），
+        // 投票後第一次輪詢可能拿到投票前的數字，讓票數往回跳。
+        // 活動進行中票數只會增加，所以比現有數字小的結果一律視為過期資料丟掉。
+        const currentTotal = Number(this.result?.total_votes ?? -1)
+        const nextTotal = Number(payload.result?.total_votes ?? 0)
+        if (this.result && nextTotal < currentTotal) {
+          return
+        }
+
+        this.result = payload.result
       } catch {
         // 輪詢失敗不覆蓋畫面，下一輪再嘗試。
       }
