@@ -11,6 +11,8 @@ export const getEndpoint = () => {
   return {
     liffId: endpoint.liffId ?? '',
     basicId: endpoint.basicId ?? '',
+    // 導覽列標題用的官方帳號／節目名稱，外殼未提供時由畫面退回活動名稱
+    oaName: endpoint.oaName ?? '',
     lineCrmApiBaseUrl: String(endpoint.lineCrmApiBaseUrl).replace(/\/$/, ''),
     voteActivityId: String(endpoint.voteActivityId),
     enableLiff: endpoint.enableLiff !== false,

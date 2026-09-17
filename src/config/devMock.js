@@ -11,3 +11,14 @@ export const getDevMockScenario = () => {
   }
   return new URLSearchParams(window.location.search).get('mock') ?? ''
 }
+
+/**
+ * 預覽模式要直接開啟的畫面
+ * @returns {string} home / vote / result，未指定時為空字串
+ */
+export const getDevMockScreen = () => {
+  if (!getDevMockScenario()) {
+    return ''
+  }
+  return new URLSearchParams(window.location.search).get('screen') ?? ''
+}

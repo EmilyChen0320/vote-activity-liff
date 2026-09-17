@@ -32,6 +32,12 @@ const statusCard = computed(() => {
   return null
 })
 
+// 活動已結束時不再顯示「開始投票」，其餘狀態即使不能投也保留（停用）按鈕
+const isEnded = computed(
+  () => store.phase === 'ended' || store.viewer?.reason === 'ended',
+)
+const showVoteButton = computed(() => !isEnded.value)
+
 // 已投過且回訪：顯示完成狀態與查看結果入口
 const showVotedSummary = computed(
   () => store.hasVoted && store.phase !== 'scheduled' && !statusCard.value,
@@ -82,6 +88,7 @@ const showVotedSummary = computed(
         />
 
         <button
+          v-if="showVoteButton"
           type="button"
           class="mt-6 w-full rounded-xl py-3.5 font-bold"
           :class="store.canVote ? 'bg-primary text-white' : 'bg-gray-400 text-white'"

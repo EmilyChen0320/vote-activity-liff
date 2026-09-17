@@ -14,6 +14,7 @@ export const applyDevEndpoint = () => {
   const devEndpoint = {
     liffId: import.meta.env?.VITE_DEV_LIFF_ID ?? '',
     basicId: import.meta.env?.VITE_DEV_BASIC_ID ?? '',
+    oaName: import.meta.env?.VITE_DEV_OA_NAME ?? '',
     lineCrmApiBaseUrl: import.meta.env?.VITE_DEV_LINE_CRM_API_BASE_URL ?? '',
     voteActivityId: import.meta.env?.VITE_DEV_VOTE_ACTIVITY_ID ?? '',
     enableLiff: import.meta.env?.VITE_DEV_ENABLE_LIFF === 'true',

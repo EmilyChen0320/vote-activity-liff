@@ -54,6 +54,9 @@ window.endpoint = {
 | `?mock=voted` | 已投過、回訪 |
 | `?mock=login` | 需要 LINE 登入 |
 
+再加上 `&screen=vote` 或 `&screen=result` 可直接開到投票頁或結果頁，
+不必先從活動首頁點「開始投票」。
+
 預覽模式只在 `npm run dev` 生效，假資料以動態 import 載入，
 正式打包後整段連同資料都會被移除，不會進入交給後端的產物。
 

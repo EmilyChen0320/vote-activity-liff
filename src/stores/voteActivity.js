@@ -1,6 +1,8 @@
 import { defineStore } from 'pinia'
 
 import { getActivity, getResult, submitVote } from '../api/voteActivity.js'
+import { getDevMockScreen } from '../config/devMock.js'
+import { getEndpoint } from '../config/endpoint.js'
 import { getLiffToken } from '../services/liff.js'
 import { countCharacters } from '../utils/format.js'
 
@@ -21,9 +23,32 @@ export const useVoteActivityStore = defineStore('voteActivity', {
     canVote: (state) => state.phase === 'ongoing' && state.viewer?.can_vote === true,
     hasVoted: (state) => state.submitted || state.viewer?.has_voted === true,
     needsLogin: (state) => state.viewer?.reason === 'login_required',
+    votedStorageKey: () => `vote-activity:voted:${getEndpoint().voteActivityId}`,
     maxSelections: (state) => state.activity?.vote_mode === 'multiple' ? Number(state.activity.max_selections) || 1 : 1,
   },
   actions: {
+    /**
+     * 記住這次投給誰
+     *
+     * 後端的 viewer 只回 has_voted，不回「這個人投給哪些選項」，
+     * 回訪時無從得知，只能先存在本機（清除瀏覽器資料或換裝置就會失效）。
+     */
+    rememberVotedItems(titles) {
+      this.votedItemTitles = titles
+      try {
+        window.localStorage.setItem(this.votedStorageKey, JSON.stringify(titles))
+      } catch {
+        // 無痕模式等情況下寫入失敗不影響投票流程
+      }
+    },
+    restoreVotedItems() {
+      try {
+        const saved = window.localStorage.getItem(this.votedStorageKey)
+        this.votedItemTitles = saved ? JSON.parse(saved) : []
+      } catch {
+        this.votedItemTitles = []
+      }
+    },
     applyActivity(payload) {
       this.activity = payload.activity
       this.items = payload.items ?? []
@@ -37,7 +62,20 @@ export const useVoteActivityStore = defineStore('voteActivity', {
       try {
         // 第一次一律不帶 token；需要登入時由使用者自己點「使用 LINE 登入」再走 login()，
         // 不在載入當下自動轉址，否則粉絲看不到活動說明就被帶去登入頁
-        this.applyActivity(await getActivity())
+        const payload = await getActivity()
+        this.applyActivity(payload)
+        if (this.viewer?.has_voted) {
+          // 預覽模式直接用假資料帶入，正式情況從本機記錄還原
+          this.votedItemTitles = payload.votedItemTitles ?? []
+          if (!this.votedItemTitles.length) {
+            this.restoreVotedItems()
+          }
+        }
+        // 預覽模式可用 &screen= 直接開到投票頁或結果頁
+        const previewScreen = getDevMockScreen()
+        if (previewScreen) {
+          this.screen = previewScreen
+        }
         this.startPolling()
       } catch (error) {
         this.error = error
@@ -87,9 +125,11 @@ export const useVoteActivityStore = defineStore('voteActivity', {
         this.viewer = { ...this.viewer, can_vote: false, has_voted: true }
         this.result = payload?.result ?? null
         // 後端的 viewer 不會回傳「這個人投給誰」，只能記下本次送出的選擇
-        this.votedItemTitles = this.selectedIds
-          .map((id) => this.items.find((item) => item.id === id)?.title)
-          .filter(Boolean)
+        this.rememberVotedItems(
+          this.selectedIds
+            .map((id) => this.items.find((item) => item.id === id)?.title)
+            .filter(Boolean),
+        )
         this.screen = 'result'
         this.startPolling()
       } finally {

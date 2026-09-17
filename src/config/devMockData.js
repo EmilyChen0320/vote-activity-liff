@@ -85,6 +85,8 @@ const scenarios = {
     phase: 'ongoing',
     viewer: viewer({ has_voted: true, voted_count: 1 }),
     result,
+    // 預覽用：實際情況下這份資料來自本機記錄
+    votedItemTitles: ['雪梨站-龍王赴宴聚寶盆'],
   },
   login: {
     activity: { ...activity, is_liff: true },
