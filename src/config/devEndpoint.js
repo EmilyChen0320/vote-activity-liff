@@ -38,9 +38,13 @@ export const applyDevEndpoint = () => {
     String(injected.lineCrmApiBaseUrl ?? '').trim() !== '' &&
     String(injected.voteActivityId ?? '').trim() !== ''
 
-  if (hasInjectedConfig) {
-    return
+  if (!hasInjectedConfig) {
+    window.endpoint = devEndpoint
   }
 
-  window.endpoint = devEndpoint
+  // 允許用網址參數切換要開啟的活動，省得每換一場活動就要重新打包或重新部署
+  const overrideActivityId = new URLSearchParams(window.location.search).get('activity')
+  if (overrideActivityId) {
+    window.endpoint = { ...window.endpoint, voteActivityId: overrideActivityId }
+  }
 }
