@@ -1,6 +1,7 @@
 import { defineStore } from 'pinia'
 
 import { getActivity, getResult, submitVote } from '../api/voteActivity.js'
+import { getDevMockScenario } from '../config/devMock.js'
 import { getLiffToken } from '../services/liff.js'
 import { countCharacters } from '../utils/format.js'
 
@@ -31,13 +32,18 @@ export const useVoteActivityStore = defineStore('voteActivity', {
       this.error = null
       try {
         let payload = await getActivity()
-        if (payload.viewer?.reason === 'login_required') {
+        // 先套用一次，確保 liff.login() 轉址前畫面上仍有活動內容而不是空白
+        this.applyActivity(payload)
+
+        // 預覽模式只看畫面，不進入 LIFF 流程
+        if (payload.viewer?.reason === 'login_required' && !getDevMockScenario()) {
           const token = await getLiffToken()
           if (!token) return
           this.token = token
           payload = await getActivity(token)
+          this.applyActivity(payload)
         }
-        this.applyActivity(payload)
+
         this.startPolling()
       } catch (error) {
         this.error = error

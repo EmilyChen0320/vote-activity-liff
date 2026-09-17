@@ -35,6 +35,27 @@ window.endpoint = {
 
 `is_liff` 不可由外殼注入，必須以活動狀態 API 為單一資料來源。
 
+## 本機預覽
+
+複製 `.env.example` 成 `.env.local` 並填入要測試的活動，即可用真實 API 開發。
+
+若只想檢視各種狀態的畫面（不需後端、不需先湊出對應狀態的活動），
+在網址加上 `?mock=` 參數：
+
+| 參數 | 畫面 |
+| --- | --- |
+| `?mock=ongoing` | 進行中、單選、即時公開 |
+| `?mock=multiple` | 進行中、複選上限 2 項 |
+| `?mock=private` | 進行中、結果不公開 |
+| `?mock=scheduled` | 活動尚未開始 |
+| `?mock=ended` | 活動已結束、未投票 |
+| `?mock=ended-voted` | 活動已結束、已投票（顯示結果） |
+| `?mock=limit` | 已達投票次數上限 |
+| `?mock=login` | 需要 LINE 登入 |
+
+預覽模式只在 `npm run dev` 生效，假資料以動態 import 載入，
+正式打包後整段連同資料都會被移除，不會進入交給後端的產物。
+
 ## 預定實作順序
 
 1. API client 與錯誤模型。

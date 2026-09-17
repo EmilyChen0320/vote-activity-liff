@@ -1,4 +1,9 @@
+import { getDevMockScenario } from '../config/devMock.js'
 import { getLiffApiUrl } from '../config/endpoint.js'
+
+// 寫成 typeof 檢查，node 測試環境沒有 import.meta.env 也不會炸，
+// 而 vite 打包時會把 import.meta.env.DEV 換成 false 讓整個常數被折疊
+const IS_DEV = typeof import.meta.env !== 'undefined' && import.meta.env.DEV === true
 
 export class VoteActivityApiError extends Error {
   constructor(message, { status = 0, code = '', errors = null } = {}) {
@@ -22,7 +27,20 @@ const parseResponse = async (response) => {
   return payload.result
 }
 
-const request = (path = '', { method = 'GET', token = '', body } = {}) => {
+const request = async (path = '', { method = 'GET', token = '', body } = {}) => {
+  // 本機預覽模式：直接回假資料，不打 API。
+  // IS_DEV 在正式打包時會被折疊成 false，整段（含動態 import）都會被移除。
+  if (IS_DEV) {
+    const scenario = getDevMockScenario()
+    if (scenario) {
+      const { getDevMockResponse } = await import('../config/devMockData.js')
+      const mock = getDevMockResponse(scenario, path)
+      if (mock) {
+        return mock
+      }
+    }
+  }
+
   const headers = { Accept: 'application/json' }
   if (token) headers.Authorization = `Bearer ${token}`
   if (body !== undefined) headers['Content-Type'] = 'application/json'
