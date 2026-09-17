@@ -3,7 +3,9 @@ import { getLiffApiUrl } from '../config/endpoint.js'
 
 // 寫成 typeof 檢查，node 測試環境沒有 import.meta.env 也不會炸，
 // 而 vite 打包時會把 import.meta.env.DEV 換成 false 讓整個常數被折疊
-const IS_DEV = typeof import.meta.env !== 'undefined' && import.meta.env.DEV === true
+const IS_MOCKABLE =
+  (typeof import.meta.env !== 'undefined' && import.meta.env.DEV === true) ||
+  (typeof import.meta.env !== 'undefined' && import.meta.env.VITE_PREVIEW === 'true')
 
 export class VoteActivityApiError extends Error {
   constructor(message, { status = 0, code = '', errors = null } = {}) {
@@ -29,8 +31,8 @@ const parseResponse = async (response) => {
 
 const request = async (path = '', { method = 'GET', token = '', body } = {}) => {
   // 本機預覽模式：直接回假資料，不打 API。
-  // IS_DEV 在正式打包時會被折疊成 false，整段（含動態 import）都會被移除。
-  if (IS_DEV) {
+  // IS_MOCKABLE 在正式打包時會被折疊成 false，整段（含動態 import）都會被移除。
+  if (IS_MOCKABLE) {
     const scenario = getDevMockScenario()
     if (scenario) {
       const { getDevMockResponse } = await import('../config/devMockData.js')

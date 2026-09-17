@@ -1,7 +1,6 @@
 <script setup>
 import CoverImage from '../components/CoverImage.vue'
 import ResultList from '../components/ResultList.vue'
-import { closeLiffWindow } from '../services/liff'
 import { useVoteActivityStore } from '../stores/voteActivity'
 
 const store = useVoteActivityStore()
@@ -32,10 +31,13 @@ const store = useVoteActivityStore()
       <button
         type="button"
         class="mt-8 w-full rounded-xl bg-primary py-3.5 font-bold text-white"
-        @click="closeLiffWindow"
+        @click="store.requestClose"
       >
         關閉
       </button>
+      <p v-if="store.closeHint" class="mt-3 text-xs text-muted">
+        此頁面由 LINE 開啟時才能自動關閉，請直接關閉瀏覽器分頁。
+      </p>
     </section>
   </main>
 </template>

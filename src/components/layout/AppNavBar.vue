@@ -1,12 +1,10 @@
 <script setup>
-import { closeLiffWindow } from '../../services/liff'
-
 defineProps({
   title: { type: String, default: '投票活動' },
   showBack: Boolean,
 })
 
-defineEmits(['back'])
+defineEmits(['back', 'close'])
 </script>
 
 <template>
@@ -24,7 +22,7 @@ defineEmits(['back'])
 
     <h1 class="truncate px-2 text-sm font-bold">{{ title }}</h1>
 
-    <button type="button" class="h-8 w-8 text-xl" aria-label="關閉" @click="closeLiffWindow">
+    <button type="button" class="h-8 w-8 text-xl" aria-label="關閉" @click="$emit('close')">
       &times;
     </button>
   </header>

@@ -28,6 +28,7 @@ onBeforeUnmount(() => store.stopPolling())
       :title="navTitle"
       :show-back="store.screen !== 'home'"
       @back="store.goToScreen('home')"
+      @close="store.requestClose"
     />
 
     <div v-if="store.loading" class="flex min-h-[70vh] items-center justify-center">

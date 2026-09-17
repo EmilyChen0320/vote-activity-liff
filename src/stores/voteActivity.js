@@ -3,7 +3,7 @@ import { defineStore } from 'pinia'
 import { getActivity, getResult, submitVote } from '../api/voteActivity.js'
 import { getDevMockScreen } from '../config/devMock.js'
 import { getEndpoint } from '../config/endpoint.js'
-import { getLiffToken } from '../services/liff.js'
+import { closeLiffWindow, getLiffToken } from '../services/liff.js'
 import { countCharacters } from '../utils/format.js'
 
 const POLLING_INTERVAL = 5000
@@ -17,6 +17,7 @@ export const useVoteActivityStore = defineStore('voteActivity', {
     screen: 'home',
     votedItemTitles: [],
     loginError: '',
+    closeHint: false,
   }),
   getters: {
     votableItems: (state) => state.items.filter((item) => item.type !== 'open_text'),
@@ -86,6 +87,10 @@ export const useVoteActivityStore = defineStore('voteActivity', {
     },
     goToScreen(screen) {
       this.screen = screen
+    },
+    /** 關閉頁面；關不掉時顯示提示，不要讓按鈕像壞掉 */
+    requestClose() {
+      this.closeHint = !closeLiffWindow()
     },
     /** 使用者主動點「使用 LINE 登入」時才走登入流程 */
     async login() {

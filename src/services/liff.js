@@ -17,7 +17,20 @@ export const getLiffToken = async () => {
   return window.liff.getAccessToken()
 }
 
+/**
+ * 關閉頁面
+ *
+ * LINE 內建瀏覽器可用 liff.closeWindow() 真的關掉；一般瀏覽器分頁不是由程式開啟的，
+ * window.close() 會被忽略（console 會出現 "Scripts may close only the windows that
+ * were opened by them."），所以要回報失敗讓畫面給提示，而不是按了沒反應。
+ * @returns {boolean} 是否真的關得掉
+ */
 export const closeLiffWindow = () => {
-  if (window.liff?.isInClient?.()) window.liff.closeWindow()
-  else window.close()
+  if (window.liff?.isInClient?.()) {
+    window.liff.closeWindow()
+    return true
+  }
+
+  window.close()
+  return false
 }
