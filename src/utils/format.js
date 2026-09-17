@@ -29,3 +29,25 @@ export const formatDateTime = (value) => {
  * @returns {number} 字元數
  */
 export const countCharacters = (value = '') => [...String(value)].length
+
+/**
+ * 把活動起訖時間組成主視覺上的日期標籤
+ * @param {string} startAt - 開始時間
+ * @param {string} endAt - 結束時間
+ * @returns {string} 例如 2026-04-01 ~ 06-30，資料不齊時回空字串
+ */
+export const formatDateRange = (startAt, endAt) => {
+  if (!startAt || !endAt) {
+    return ''
+  }
+
+  const start = new Date(startAt)
+  const end = new Date(endAt)
+  if (Number.isNaN(start.getTime()) || Number.isNaN(end.getTime())) {
+    return ''
+  }
+
+  const startText = `${start.getFullYear()}-${pad(start.getMonth() + 1)}-${pad(start.getDate())}`
+  const endText = `${pad(end.getMonth() + 1)}-${pad(end.getDate())}`
+  return `${startText} ~ ${endText}`
+}

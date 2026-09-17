@@ -51,6 +51,7 @@ window.endpoint = {
 | `?mock=ended` | 活動已結束、未投票 |
 | `?mock=ended-voted` | 活動已結束、已投票（顯示結果） |
 | `?mock=limit` | 已達投票次數上限 |
+| `?mock=voted` | 已投過、回訪 |
 | `?mock=login` | 需要 LINE 登入 |
 
 預覽模式只在 `npm run dev` 生效，假資料以動態 import 載入，

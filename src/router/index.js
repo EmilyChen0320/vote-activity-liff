@@ -1,6 +1,6 @@
 import { createRouter, createWebHistory } from 'vue-router'
 
-import HomeView from '../views/HomeView.vue'
+import ActivityPage from '../views/ActivityPage.vue'
 
 const router = createRouter({
   // 正式環境由後端在 /vote/{id} 提供頁面外殼；
@@ -10,7 +10,7 @@ const router = createRouter({
     {
       path: '/:id?',
       name: 'home',
-      component: HomeView,
+      component: ActivityPage,
     },
   ],
 })

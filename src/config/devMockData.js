@@ -1,7 +1,12 @@
+import mockCover from '../assets/images/result-banner-default.webp'
+
 const activity = {
-  name: '請世界吃桌',
-  description: '為你心中的最佳菜品投下一票',
-  cover_image: '',
+  name: '請世界吃桌-雪梨站菜品票選',
+  description:
+    '節目由隋棠、藍正龍、浩子、陳隨意與美食 YouTuber 千千五位主持人組成「辦桌台灣隊」，' +
+    '在總舖師林明燦（阿燦師）、蔡瑞成（大頭師）、洪俊男（阿男師）指導下接受廚藝與辦桌訓練，' +
+    '並前往澳洲雪梨歌劇院，為你心中的表現最佳者投下一票',
+  cover_image: mockCover,
   result_cover_image: '',
   completion_message: '感謝您的參與！',
   vote_mode: 'single',
@@ -17,7 +22,7 @@ const items = [
   { id: 'a', type: 'image_text', title: '雪梨站-龍王赴宴聚寶盆', subtitle: '首站雪梨場人氣第一菜品', image: '', sort: 1 },
   { id: 'b', type: 'text', title: '雪梨站-臺灣櫻花蝦米糕', subtitle: '首站雪梨場人氣第二', image: '', sort: 2 },
   { id: 'c', type: 'text', title: '沙茶蜜香雞', subtitle: '', image: '', sort: 3 },
-  { id: 'd', type: 'open_text', title: '寫下想對主廚說的話', subtitle: '', required: false, sort: 4 },
+  { id: 'd', type: 'open_text', title: '想說些什麼？', subtitle: '請謹慎留言，避免不當言論', required: false, sort: 4 },
 ]
 
 const result = {
@@ -73,6 +78,13 @@ const scenarios = {
       voted_count: 1,
       next_votable_at: '2026-10-02T16:00:00.000000Z',
     }),
+  },
+  voted: {
+    activity,
+    items,
+    phase: 'ongoing',
+    viewer: viewer({ has_voted: true, voted_count: 1 }),
+    result,
   },
   login: {
     activity: { ...activity, is_liff: true },

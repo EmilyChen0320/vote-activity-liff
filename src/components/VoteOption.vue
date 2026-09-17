@@ -17,8 +17,8 @@ defineEmits(['toggle'])
     @click="$emit('toggle')"
   >
     <span
-      class="flex h-5 w-5 shrink-0 items-center justify-center rounded border"
-      :class="selected ? 'border-primary bg-primary text-white' : 'border-gray-300'"
+      class="flex h-5 w-5 shrink-0 items-center justify-center rounded border text-xs font-bold"
+      :class="selected ? 'border-primary bg-primary text-white' : 'border-gray-300 bg-white'"
     >
       <span v-if="selected">✓</span>
     </span>

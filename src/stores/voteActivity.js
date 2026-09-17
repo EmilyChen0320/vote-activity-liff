@@ -1,7 +1,6 @@
 import { defineStore } from 'pinia'
 
 import { getActivity, getResult, submitVote } from '../api/voteActivity.js'
-import { getDevMockScenario } from '../config/devMock.js'
 import { getLiffToken } from '../services/liff.js'
 import { countCharacters } from '../utils/format.js'
 
@@ -12,11 +11,16 @@ export const useVoteActivityStore = defineStore('voteActivity', {
     loading: false, submitting: false, error: null, token: '', activity: null,
     items: [], phase: '', viewer: null, result: null, submitted: false,
     selectedIds: [], answerText: '', pollTimer: null,
+    // 活動連結只有 /vote/{id} 一條路由，畫面切換用狀態控制而不是換網址
+    screen: 'home',
+    votedItemTitles: [],
   }),
   getters: {
     votableItems: (state) => state.items.filter((item) => item.type !== 'open_text'),
     openTextItem: (state) => state.items.find((item) => item.type === 'open_text') ?? null,
     canVote: (state) => state.phase === 'ongoing' && state.viewer?.can_vote === true,
+    hasVoted: (state) => state.submitted || state.viewer?.has_voted === true,
+    needsLogin: (state) => state.viewer?.reason === 'login_required',
     maxSelections: (state) => state.activity?.vote_mode === 'multiple' ? Number(state.activity.max_selections) || 1 : 1,
   },
   actions: {
@@ -31,24 +35,29 @@ export const useVoteActivityStore = defineStore('voteActivity', {
       this.loading = true
       this.error = null
       try {
-        let payload = await getActivity()
-        // 先套用一次，確保 liff.login() 轉址前畫面上仍有活動內容而不是空白
-        this.applyActivity(payload)
-
-        // 預覽模式只看畫面，不進入 LIFF 流程
-        if (payload.viewer?.reason === 'login_required' && !getDevMockScenario()) {
-          const token = await getLiffToken()
-          if (!token) return
-          this.token = token
-          payload = await getActivity(token)
-          this.applyActivity(payload)
-        }
-
+        // 第一次一律不帶 token；需要登入時由使用者自己點「使用 LINE 登入」再走 login()，
+        // 不在載入當下自動轉址，否則粉絲看不到活動說明就被帶去登入頁
+        this.applyActivity(await getActivity())
         this.startPolling()
       } catch (error) {
         this.error = error
       } finally {
         this.loading = false
+      }
+    },
+    goToScreen(screen) {
+      this.screen = screen
+    },
+    /** 使用者主動點「使用 LINE 登入」時才走登入流程 */
+    async login() {
+      try {
+        const token = await getLiffToken()
+        if (!token) return
+        this.token = token
+        this.applyActivity(await getActivity(token))
+        this.startPolling()
+      } catch (error) {
+        this.error = error
       }
     },
     toggleSelection(id) {
@@ -77,6 +86,11 @@ export const useVoteActivityStore = defineStore('voteActivity', {
         this.submitted = true
         this.viewer = { ...this.viewer, can_vote: false, has_voted: true }
         this.result = payload?.result ?? null
+        // 後端的 viewer 不會回傳「這個人投給誰」，只能記下本次送出的選擇
+        this.votedItemTitles = this.selectedIds
+          .map((id) => this.items.find((item) => item.id === id)?.title)
+          .filter(Boolean)
+        this.screen = 'result'
         this.startPolling()
       } finally {
         this.submitting = false
