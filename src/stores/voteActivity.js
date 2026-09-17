@@ -2,6 +2,7 @@ import { defineStore } from 'pinia'
 
 import { getActivity, getResult, submitVote } from '../api/voteActivity.js'
 import { getLiffToken } from '../services/liff.js'
+import { countCharacters } from '../utils/format.js'
 
 const POLLING_INTERVAL = 5000
 
@@ -57,7 +58,7 @@ export const useVoteActivityStore = defineStore('voteActivity', {
       if (!this.selectedIds.length) return '請至少選擇一個選項'
       if (this.selectedIds.length > this.maxSelections) return `最多可選 ${this.maxSelections} 項`
       if (this.openTextItem?.required && !this.answerText.trim()) return '請填寫必填的開放輸入欄位'
-      if (this.answerText.length > 500) return '開放輸入內容不可超過 500 字'
+      if (countCharacters(this.answerText) > 500) return '開放輸入內容不可超過 500 字'
       return ''
     },
     async submit() {
@@ -79,7 +80,10 @@ export const useVoteActivityStore = defineStore('voteActivity', {
       try {
         const payload = await getResult(this.token)
         this.phase = payload.phase
-        if (payload.disclosed) this.result = payload.result
+        // 3.13 不揭露時 result 為 null；此時要一併清掉，
+        // 否則活動中途結束後，未投票者會繼續看到過期票數
+        this.result = payload.disclosed ? payload.result : null
+        if (!payload.disclosed) this.stopPolling()
       } catch {
         // 輪詢失敗不覆蓋畫面，下一輪再嘗試。
       }
