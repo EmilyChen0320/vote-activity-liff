@@ -18,8 +18,17 @@ const navTitle = computed(
   () => getEndpoint().oaName || store.activity?.name || '投票活動',
 )
 
-onMounted(() => store.bootstrap())
-onBeforeUnmount(() => store.stopPolling())
+const handleVisibilityChange = () => store.handleVisibilityChange()
+
+onMounted(() => {
+  store.bootstrap()
+  document.addEventListener('visibilitychange', handleVisibilityChange)
+})
+
+onBeforeUnmount(() => {
+  store.stopPolling()
+  document.removeEventListener('visibilitychange', handleVisibilityChange)
+})
 </script>
 
 <template>

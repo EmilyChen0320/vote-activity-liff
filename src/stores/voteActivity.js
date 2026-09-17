@@ -26,6 +26,11 @@ export const useVoteActivityStore = defineStore('voteActivity', {
     hasVoted: (state) => state.submitted || state.viewer?.has_voted === true,
     needsLogin: (state) => state.viewer?.reason === 'login_required',
     votedStorageKey: () => `vote-activity:voted:${getEndpoint().voteActivityId}`,
+    // 只有「即時公開 + 進行中 + 目前看得到結果」才需要輪詢
+    canPollResult: (state) =>
+      state.activity?.result_visibility === 'realtime' &&
+      state.phase === 'ongoing' &&
+      Boolean(state.result),
     maxSelections: (state) => state.activity?.vote_mode === 'multiple' ? Number(state.activity.max_selections) || 1 : 1,
   },
   actions: {
@@ -181,8 +186,27 @@ export const useVoteActivityStore = defineStore('voteActivity', {
     },
     startPolling() {
       this.stopPolling()
-      if (this.activity?.result_visibility !== 'realtime' || this.phase !== 'ongoing' || !this.result) return
+      if (!this.canPollResult) {
+        return
+      }
       this.pollTimer = window.setInterval(() => this.refreshResult(), POLLING_INTERVAL)
+    },
+    /**
+     * 分頁切到背景就停止輪詢，切回來再補一次並續跑
+     *
+     * 頁面長時間掛著會持續打結果端點（每次還多一個 CORS preflight），
+     * 使用者看不到的時候沒有必要消耗後端的流量限制。
+     */
+    handleVisibilityChange() {
+      if (document.hidden) {
+        this.stopPolling()
+        return
+      }
+      if (!this.canPollResult) {
+        return
+      }
+      this.refreshResult()
+      this.startPolling()
     },
     stopPolling() {
       if (this.pollTimer) window.clearInterval(this.pollTimer)
