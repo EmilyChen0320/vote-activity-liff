@@ -17,7 +17,6 @@ test('正規化後端注入的投票活動設定', () => {
   assert.deepEqual(getEndpoint(), {
     liffId: 'test-liff-id',
     basicId: '@test',
-    oaName: '',
     lineCrmApiBaseUrl: 'https://feature-line-crm.aitago.tw',
     voteActivityId: '01TESTVOTE',
     enableLiff: false,

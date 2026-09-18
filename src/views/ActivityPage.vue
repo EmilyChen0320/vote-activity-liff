@@ -2,7 +2,6 @@
 import { computed, onBeforeUnmount, onMounted } from 'vue'
 
 import AppNavBar from '../components/layout/AppNavBar.vue'
-import { getEndpoint } from '../config/endpoint'
 import { useVoteActivityStore } from '../stores/voteActivity'
 import HomeView from './HomeView.vue'
 import ResultView from './ResultView.vue'
@@ -12,11 +11,7 @@ const store = useVoteActivityStore()
 
 const screens = { home: HomeView, vote: VoteView, result: ResultView }
 const currentScreen = computed(() => screens[store.screen] ?? HomeView)
-// 設計稿的導覽列顯示的是官方帳號／節目名稱，比活動名稱短，
-// 由頁面外殼提供；沒有提供時退回活動名稱以免留白
-const navTitle = computed(
-  () => getEndpoint().oaName || store.activity?.name || '投票活動',
-)
+const navTitle = computed(() => store.activity?.name || '投票活動')
 
 const handleVisibilityChange = () => store.handleVisibilityChange()
 

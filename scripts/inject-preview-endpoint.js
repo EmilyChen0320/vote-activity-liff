@@ -4,7 +4,6 @@ const indexPath = new URL('../dist/index.html', import.meta.url)
 const endpoint = {
   liffId: '2006298318-pWB0BqkM',
   basicId: '',
-  oaName: '請世界吃桌',
   lineCrmApiBaseUrl: 'https://feature-line-crm.aitago.tw',
   voteActivityId: '01m2ppns11png1jk9t1em2zqkt',
   enableLiff: true,
