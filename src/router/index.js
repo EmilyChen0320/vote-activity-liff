@@ -1,22 +1,13 @@
 import { createRouter, createWebHistory } from 'vue-router'
 
 import ActivityPage from '../views/ActivityPage.vue'
+import { createActivityRoutes } from './routes.js'
 
 const router = createRouter({
-  // 正式環境由後端在 /vote/{id} 提供頁面外殼；
-  // dev 與 preview 是由 vite 自己送 HTML，路徑跟著 base 走，否則 router 永遠匹配不到
-  history: createWebHistory(
-    import.meta.env.DEV || import.meta.env.MODE === 'preview'
-      ? import.meta.env.BASE_URL
-      : '/vote/',
-  ),
-  routes: [
-    {
-      path: '/:id?',
-      name: 'home',
-      component: ActivityPage,
-    },
-  ],
+  // 後端會以 /vote/{id} 或 /liff/vote/{id} 提供同一份頁面外殼，
+  // 活動 ID 由 window.endpoint 注入，因此 router 只負責掛載頁面。
+  history: createWebHistory('/'),
+  routes: createActivityRoutes(ActivityPage),
 })
 
 export default router
