@@ -3,10 +3,19 @@ import { computed } from 'vue'
 
 import CoverImage from '../components/CoverImage.vue'
 import StatusCard from '../components/StatusCard.vue'
+import { getEndpoint } from '../config/endpoint'
 import { useVoteActivityStore } from '../stores/voteActivity'
 import { formatDateTime } from '../utils/format'
+import { getAddFriendUrl } from '../utils/friend'
 
 const store = useVoteActivityStore()
+const addFriendUrl = getAddFriendUrl(getEndpoint().basicId)
+
+const handleAddFriendClick = (event) => {
+  if (addFriendUrl) return
+  event.preventDefault()
+  store.friendCheckError = '缺少官方帳號設定，暫時無法開啟加好友頁面'
+}
 
 defineEmits(['login'])
 
@@ -19,6 +28,13 @@ const statusCard = computed(() => {
 
   if (store.phase === 'ended' || store.viewer?.reason === 'ended') {
     return { title: '活動已結束', message: '' }
+  }
+
+  if (store.needsFriend) {
+    return {
+      title: '加入好友後即可投票',
+      message: '本活動限官方帳號好友參加，加入好友後回到此頁即可投票',
+    }
   }
 
   if (store.viewer?.reason === 'frequency_limit_reached') {
@@ -36,7 +52,8 @@ const statusCard = computed(() => {
 const isEnded = computed(
   () => store.phase === 'ended' || store.viewer?.reason === 'ended',
 )
-const showVoteButton = computed(() => !isEnded.value)
+// 非好友的投票按鈕換成底部的加好友引導
+const showVoteButton = computed(() => !isEnded.value && !store.needsFriend)
 
 // 已投過且「不能再投」時才顯示完成狀態；
 // 不限次數的活動投完仍可再投，停在完成畫面會讓人以為不能投了
@@ -124,6 +141,28 @@ const showVotedSummary = computed(
         @click="$emit('login')"
       >
         使用 LINE 登入
+      </button>
+    </div>
+
+    <div v-if="store.needsFriend" class="fixed inset-x-0 bottom-0 mx-auto max-w-[393px] bg-white p-4">
+      <p v-if="store.friendCheckError" class="mb-2 text-center text-xs text-red-500">
+        {{ store.friendCheckError }}
+      </p>
+      <a
+        :href="addFriendUrl || undefined"
+        class="flex w-full items-center justify-center gap-2 rounded-xl bg-[#06c755] py-3.5 font-bold text-white"
+        @click="handleAddFriendClick"
+      >
+        加入好友
+      </a>
+      <!-- 從加好友頁返回不一定會觸發 visibilitychange，保留手動重新確認的入口 -->
+      <button
+        type="button"
+        class="mt-3 w-full text-center text-sm font-bold text-primary underline disabled:opacity-50"
+        :disabled="store.refreshingViewer"
+        @click="store.refreshViewer({ manual: true })"
+      >
+        {{ store.refreshingViewer ? '確認中…' : '我已加入好友，重新確認' }}
       </button>
     </div>
   </main>

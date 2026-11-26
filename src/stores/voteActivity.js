@@ -18,6 +18,8 @@ export const useVoteActivityStore = defineStore('voteActivity', {
     votedItemTitles: [],
     loginError: '',
     closeHint: false,
+    refreshingViewer: false,
+    friendCheckError: '',
   }),
   getters: {
     votableItems: (state) => state.items.filter((item) => item.type !== 'open_text'),
@@ -25,6 +27,7 @@ export const useVoteActivityStore = defineStore('voteActivity', {
     canVote: (state) => state.phase === 'ongoing' && state.viewer?.can_vote === true,
     hasVoted: (state) => state.submitted || state.viewer?.has_voted === true,
     needsLogin: (state) => state.viewer?.reason === 'login_required',
+    needsFriend: (state) => state.viewer?.reason === 'friend_required',
     votedStorageKey: () => `vote-activity:voted:${getEndpoint().voteActivityId}`,
     // 只有「即時公開 + 進行中 + 目前看得到結果」才需要輪詢
     canPollResult: (state) =>
@@ -121,6 +124,37 @@ export const useVoteActivityStore = defineStore('voteActivity', {
         this.loginError = error.message || '登入失敗，請稍後再試'
       }
     },
+    /**
+     * 加好友後重新取得觀看者狀態
+     *
+     * 後端每次都即時向 LINE 確認好友狀態，重打活動狀態端點就能拿到新的 can_vote。
+     * 該端點每次呼叫都會寫入貼標紀錄且有流量限制，所以只在 friend_required 時才打。
+     */
+    async refreshViewer({ manual = false } = {}) {
+      if (this.refreshingViewer || !this.needsFriend) return
+      this.refreshingViewer = true
+      this.friendCheckError = ''
+      try {
+        this.applyActivity(await getActivity(this.token))
+        // 回到前景的自動確認不提示，避免使用者只是切換視窗就看到錯誤
+        if (manual && this.needsFriend) {
+          this.friendCheckError = '尚未偵測到加入好友，請加入後再試一次'
+        }
+        this.startPolling()
+      } catch (error) {
+        if (manual) {
+          this.friendCheckError = error.message || '暫時無法確認好友狀態，請稍後再試'
+        }
+      } finally {
+        this.refreshingViewer = false
+      }
+    },
+    /** 送出投票時後端才判定不是好友（例如進頁後才封鎖），切回加好友引導 */
+    markFriendRequired() {
+      this.viewer = { ...this.viewer, can_vote: false, reason: 'friend_required' }
+      this.friendCheckError = ''
+      this.screen = 'home'
+    },
     toggleSelection(id) {
       if (this.activity?.vote_mode === 'single') {
         this.selectedIds = this.selectedIds.includes(id) ? [] : [id]
@@ -215,6 +249,11 @@ export const useVoteActivityStore = defineStore('voteActivity', {
     handleVisibilityChange() {
       if (document.hidden) {
         this.stopPolling()
+        return
+      }
+      // 使用者去加好友再回到頁面時不用重開連結，回前景就重新確認一次
+      if (this.needsFriend) {
+        this.refreshViewer()
         return
       }
       if (!this.canPollResult) {

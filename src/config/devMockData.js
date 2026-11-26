@@ -115,6 +115,12 @@ const scenarios = {
     phase: 'ongoing',
     viewer: viewer({ reason: 'login_required' }),
   },
+  friend: {
+    activity: { ...activity, is_liff: true },
+    items,
+    phase: 'ongoing',
+    viewer: viewer({ authenticated: true, reason: 'friend_required' }),
+  },
 }
 
 export const getDevMockScenario = () => {
@@ -151,7 +157,17 @@ export const getDevMockResponse = (name, path = '') => {
     return { phase: scenario.phase, disclosed, result: disclosed ? scenario.result : null }
   }
 
+  // 模擬「加好友後重新確認」：第一次是非好友，之後的確認都當作已加入，才能在本機走完整個流程
+  if (name === 'friend') {
+    friendCheckCount += 1
+    if (friendCheckCount > 1) {
+      return { ...scenario, viewer: viewer({ authenticated: true, can_vote: true }), result }
+    }
+  }
+
   return scenario
 }
+
+let friendCheckCount = 0
 
 export const DEV_MOCK_SCENARIOS = Object.keys(scenarios)

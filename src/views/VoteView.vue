@@ -20,11 +20,18 @@ const handleSubmit = async () => {
   try {
     await store.submit()
   } catch (error) {
-    // 429 VOTE_SUBMISSION_IN_PROGRESS 代表上一次送出還在處理，屬於可重試，不當成錯誤畫面
-    submitRetryable.value = error?.code === 'VOTE_SUBMISSION_IN_PROGRESS'
-    submitError.value = submitRetryable.value
-      ? '上一次投票還在處理中，請稍候再送出一次'
-      : error.message || '投票失敗，請稍後再試'
+    if (error?.code === 'VOTE_FRIEND_REQUIRED') {
+      store.markFriendRequired()
+      return
+    }
+    // 429 上一次送出還在處理、503 暫時查不到好友狀態，都屬於可重試，不當成錯誤畫面
+    const retryableMessages = {
+      VOTE_SUBMISSION_IN_PROGRESS: '上一次投票還在處理中，請稍候再送出一次',
+      VOTE_FRIEND_CHECK_UNAVAILABLE: '暫時無法確認好友狀態，請稍後再送出一次',
+    }
+    const retryMessage = retryableMessages[error?.code]
+    submitRetryable.value = Boolean(retryMessage)
+    submitError.value = retryMessage || error.message || '投票失敗，請稍後再試'
   }
 }
 </script>
